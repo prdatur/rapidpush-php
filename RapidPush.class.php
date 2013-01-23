@@ -57,6 +57,35 @@ class RapidPush {
 	}
 	
 	/**
+	 * Schedule a notification.
+	 * 
+	 * @param int when
+	 *  The local timestamp.
+	 * @param string $title
+	 *   The title.
+	 * @param string $message
+	 *   The message.
+	 * @param int $priority
+	 *   The priority. (optional, default = 2)
+	 * @param string $category
+	 *   The category. (optional, default = 'default')
+	 * @param string $group
+	 *   The device group. (optional, default = '')
+	 * 
+	 * @return array The response array.
+	 */
+	public function schedule($when, $title, $message, $priority = 2, $category = "default", $group = "") {
+		return $this->execute('notify', array(
+			'title' => $title,
+			'message' => $message,
+			'priority' => $priority,
+			'category' => $category,
+			'group' => $group,
+			'schedule_at' => gmdate("Y-m-d H:i:00", $when),
+		));
+	}
+	
+	/**
 	 * Get the configurated device groups.
 	 * 
 	 * @return array The response array, where the groups will be within the data key.
@@ -78,7 +107,7 @@ class RapidPush {
 	 * @return array The response array.
 	 */
 	private function execute($command, $data, $post = true) {
-
+		
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, self::API_SERVICE_URL);
 		

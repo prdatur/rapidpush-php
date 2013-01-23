@@ -12,6 +12,34 @@ foreach ($response['data'] AS $group) {
 	echo $group . "\n";
 }
 
+// Example of scheduling.
+$response = $api->schedule((time()+60), 'test', 'This is the scheduled test content');
+if ($response['code'] === 200) {
+	echo "Notification scheduled successfully\n";
+}
+else {
+	switch($response['code']) {
+		case 405:
+			echo "Invalid parameter\n";
+			break;
+		case 407:
+			echo "Could not insert notification\n";
+			break;
+		case 408:
+			echo "Invalid API-Key\n";
+			break;
+		case 409:
+			echo "Invalid command\n";
+			break;
+		case 410:
+			echo "API rate limit exceeded\n";
+			break;
+		default:
+			echo "Could not send notification, unknown error.\n";
+			break;
+	}
+}
+
 // Example of sending notifications including error handlings.
 $response = $api->notify('test', 'This is the test content');
 if ($response['code'] === 200) {
