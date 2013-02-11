@@ -37,7 +37,7 @@ if (empty($options['a']) || empty($options['t']) || empty($options['m'])) {
 }
 
 // Fill empty options.
-if (!isset($options['p']) || empty($options['p'])) {
+if (!isset($options['p']) || (empty($options['p']) && $options['p'] !== "0")) {
 	$options['p'] = '';
 }
 if (!isset($options['c']) || empty($options['c'])) {
