@@ -83,12 +83,12 @@ else {
 if (!isset($response['code'])) {
 	// Loop through all provided api keys and get the response for that key.
 	foreach ($response AS $response_key => $resp) {
-		echo "Response for key \"" . $response_key . "\": " . display_response($resp);
+		echo "Response for key \"" . $response_key . "\": " . display_response($resp, $options['s']);
 	}
 }
 // Just single API-Key call.
 else {
-	echo display_response($response);
+	echo display_response($response, $options['s']);
 }
 
 /**
@@ -96,12 +96,14 @@ else {
  * 
  * @param array $response
  *   The api response array.
+ * @param boolean $scheduled
+ *   If the message was scheduled or not (optional, default = false)
  * 
  * @return string The human readable response message.
  */
-function display_response($response) {
+function display_response($response, $scheduled = false) {
 	if ($response['code'] === 200) {
-		if (!empty($options['s'])) {
+		if (!empty($scheduled)) {
 			return "Notification scheduled successfully\n";
 		}
 		else {
