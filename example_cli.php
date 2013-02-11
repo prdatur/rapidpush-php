@@ -78,34 +78,57 @@ else {
 	// Timestamp not provided, direct notify the devices.
 	$response = $api->notify($options['t'], $options['m'], $options['p'], $options['c'], $options['g']);
 }
-if ($response['code'] === 200) {
-	if (!empty($options['s'])) {
-		echo "Notification scheduled successfully\n";
-	}
-	else {
-		echo "Notification send successfully\n";
+
+// If we have provided multiple api-keys, we need to handle the reponse different.
+if (!isset($response['code'])) {
+	// Loop through all provided api keys and get the response for that key.
+	foreach ($response AS $response_key => $resp) {
+		echo "Response for key \"" . $response_key . "\": " . display_response($resp);
 	}
 }
+// Just single API-Key call.
 else {
-	switch($response['code']) {
-		case 405:
-			echo "Invalid parameter\n";
-			break;
-		case 407:
-			echo "Could not insert notification\n";
-			break;
-		case 408:
-			echo "Invalid API-Key\n";
-			break;
-		case 409:
-			echo "Invalid command\n";
-			break;
-		case 410:
-			echo "API rate limit exceeded\n";
-			break;
-		default:
-			echo "Could not send notification, unknown error.\n";
-			break;
+	echo display_response($response);
+}
+
+/**
+ * Display the response.
+ * 
+ * @param array $response
+ *   The api response array.
+ * 
+ * @return string The human readable response message.
+ */
+function display_response($response) {
+	if ($response['code'] === 200) {
+		if (!empty($options['s'])) {
+			return "Notification scheduled successfully\n";
+		}
+		else {
+			return "Notification send successfully\n";
+		}
+	}
+	else {
+		switch($response['code']) {
+			case 405:
+				return $response['desc'] . "\n";
+				break;
+			case 407:
+				return "Could not insert notification\n";
+				break;
+			case 408:
+				return "Invalid API-Key\n";
+				break;
+			case 409:
+				return "Invalid command\n";
+				break;
+			case 410:
+				return "API rate limit exceeded\n";
+				break;
+			default:
+				return "Could not send notification, unknown error.\n";
+				break;
+		}
 	}
 }
 
@@ -122,7 +145,7 @@ function display_help($error_message = '') {
 	}
 	
 	echo "Required options:\n";
-	echo "-a key, --apikey=\"key\"\t\t\tThe API-Key\n";
+	echo "-a key, --apikey=\"key\"\t\t\tThe API-Key, multiple api keys are comma seperated\n";
 	echo "-t title, --title=\"title\"\t\tThe notification title\n";
 	echo "-m message, --message=\"message\"\t\tThe notification message\n";
 	echo "\n";
