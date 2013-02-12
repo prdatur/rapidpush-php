@@ -65,6 +65,9 @@ if (!empty($options['s'])) {
 		display_help('Schedule date needs to be in the future.');
 	}
 }
+else {
+	$options['s'] = "";
+}
 
 // Creating our API-Object, please set your api key before trying.
 $api = new RapidPush($options['a']);
