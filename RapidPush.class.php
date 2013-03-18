@@ -31,6 +31,26 @@ class RapidPush {
 	}
 	
 	/**
+	 * Sends a broadcast notification to the channel.
+	 * 
+	 * @param string $title
+	 *   The title.
+	 * @param string $message
+	 *   The message.
+	 * @param string $channel
+	 *   The channel
+	 * 
+	 * @return array The response array.
+	 */
+	public function broadcast($title, $message, $channel) {
+		return $this->execute('broadcast', array(
+			'title' => $title,
+			'message' => $message,
+			'channel' => $channel,
+		));
+	}
+	
+	/**
 	 * Sends a notification.
 	 * 
 	 * @param string $title
@@ -129,7 +149,7 @@ class RapidPush {
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 		
 		$result = curl_exec($ch);
-		
+
 		curl_close($ch);
 		return json_decode($result, true);
 	}

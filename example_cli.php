@@ -9,6 +9,7 @@ $options = getopt('a:t:m:c::g::p::s::', array(
 	'title:',
 	'message:',
 	'priority::',
+	'channel::',
 	'category::',
 	'group::',
 	'schedule::',
@@ -36,33 +37,39 @@ if (empty($options['a']) || empty($options['t']) || empty($options['m'])) {
 	display_help('Missing parameters');
 }
 
-// Fill empty options.
-if (!isset($options['p']) || (empty($options['p']) && $options['p'] !== "0")) {
-	$options['p'] = '';
-}
-if (!isset($options['c']) || empty($options['c'])) {
-	$options['c'] = '';
-}
-if (!isset($options['g']) || empty($options['g'])) {
-	$options['g'] = '';
-}
-
-// Validates the parameter.
-if (!empty($options['p']) && ((int)$options['p'] < 0 || ($options['p']) > 6)) {
-	display_help('Priority can only between 0 and 6');
-}
-
-// Check for valid time.
-if (!empty($options['s'])) {
-	
-	// Check if we can parse the provided time.
-	$timestamp = strtotime($options['s']);
-	if ($timestamp === false) {
-		display_help('Invalid schedule date');
+// Validate and set default params only to non broadcast notifications.
+if (!isset($options['channel'])) {
+	// Fill empty options.
+	if (!isset($options['p']) || (empty($options['p']) && $options['p'] !== "0")) {
+		$options['p'] = '';
 	}
-	// Validate that the provided time is in the future.
-	if (strtotime(date("Y-m-d H:i:00", $timestamp)) <= strtotime(date("Y-m-d H:i:00"))) {
-		display_help('Schedule date needs to be in the future.');
+	if (!isset($options['c']) || empty($options['c'])) {
+		$options['c'] = '';
+	}
+	if (!isset($options['g']) || empty($options['g'])) {
+		$options['g'] = '';
+	}
+
+	// Validates the parameter.
+	if (!empty($options['p']) && ((int)$options['p'] < 0 || ($options['p']) > 6)) {
+		display_help('Priority can only between 0 and 6');
+	}
+
+	// Check for valid time.
+	if (!empty($options['s'])) {
+
+		// Check if we can parse the provided time.
+		$timestamp = strtotime($options['s']);
+		if ($timestamp === false) {
+			display_help('Invalid schedule date');
+		}
+		// Validate that the provided time is in the future.
+		if (strtotime(date("Y-m-d H:i:00", $timestamp)) <= strtotime(date("Y-m-d H:i:00"))) {
+			display_help('Schedule date needs to be in the future.');
+		}
+	}
+	else {
+		$options['s'] = "";
 	}
 }
 else {
@@ -72,16 +79,21 @@ else {
 // Creating our API-Object, please set your api key before trying.
 $api = new RapidPush($options['a']);
 
-// Example of sending and scheduling notifications including error handlings.
-if (!empty($options['s'])) {
-	// Timestamp is not empty, so we need to schedule.
-	$response = $api->schedule($timestamp, $options['t'], $options['m'], $options['p'], $options['c'], $options['g']);
+// Send or shedule a normal notification if we have not a channel provided, else send a broadcast notification.
+if (!isset($options['channel'])) {
+	// Example of sending and scheduling notifications including error handlings.
+	if (!empty($options['s'])) {
+		// Timestamp is not empty, so we need to schedule.
+		$response = $api->schedule($timestamp, $options['t'], $options['m'], $options['p'], $options['c'], $options['g']);
+	}
+	else {
+		// Timestamp not provided, direct notify the devices.
+		$response = $api->notify($options['t'], $options['m'], $options['p'], $options['c'], $options['g']);
+	}
 }
 else {
-	// Timestamp not provided, direct notify the devices.
-	$response = $api->notify($options['t'], $options['m'], $options['p'], $options['c'], $options['g']);
+	$response = $api->broadcast($options['t'], $options['m'], $options['channel']);
 }
-
 // If we have provided multiple api-keys, we need to handle the reponse different.
 if (!isset($response['code'])) {
 	// Loop through all provided api keys and get the response for that key.
@@ -159,5 +171,6 @@ function display_help($error_message = '') {
 	echo "-g=group, --group=\"group\"\t\tThe device group, which you have configurated at our website (optional, default = '').\n";
 	echo "-c=category, --category=\"category\"\tThe category (default = 'default').\n";
 	echo "-s=\"schedule time\", --category=\"schedule time\"\tThe schedule time, if provided the notification will be scheduled. format = Y-m-d H:i:00 (ex: 2013-01-25 23:34:00) (default = '').\n";
+	echo "--channel=\"the_channel\"\tThe broadcast channel, if provided the notification will be send to the given channel and not to your phones.\n";
 	exit;
 }
